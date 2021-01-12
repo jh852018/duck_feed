@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import AppBar from '@material-ui/core/AppBar'
 import Toolbar from '@material-ui/core/Toolbar'
 import Button from '@material-ui/core/Button'
@@ -28,6 +28,10 @@ function App() {
   const onChangeAdminMode = (event) => {
     setIsAdminMode(!isAdminMode)
   }
+
+  useEffect(() => {
+    document.title = isAdminMode ? 'Duck Feed Log' : 'Duck Feed Entry'
+  }, [isAdminMode])
 
   return (
     <div className={classes.root}>
