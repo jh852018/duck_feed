@@ -1,20 +1,15 @@
-export const columns = [
-    { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'firstName', headerName: 'First name', width: 130 },
-    { field: 'lastName', headerName: 'Last name', width: 130 },
-    {
-      field: 'age',
-      headerName: 'Age',
-      type: 'number',
-      width: 90,
+export const adminColumns = [
+    // { field: 'id', headerName: 'Feed Time(UTC)', width: 70 },
+    { field: 'time',
+      headerName: 'Feed Time(Local)',
+      width: 200,
+      valueGetter: (params)=>{
+          return `${(new Date(params.getValue('df_time'))).toLocaleString()}`
+      }
     },
-    {
-      field: 'fullName',
-      headerName: 'Full name',
-      description: 'This column has a value getter and is not sortable.',
-      sortable: false,
-      width: 160,
-      valueGetter: (params) =>
-        `${params.getValue('firstName') || ''} ${params.getValue('lastName') || ''}`,
-    },
+    { field: 'df_food', headerName: 'Food Name', width: 130 },
+    { field: 'df_location', headerName: 'Feed Location', width: 150 },
+    { field: 'df_count', headerName: 'Duck Count', type: 'number', width: 150 },
+    { field: 'df_food_type', headerName: 'Duck Food Type', width: 170 },
+    { field: 'df_food_qty',headerName: 'Duck Food Qty.', type: 'number', width: 170 },    
   ];

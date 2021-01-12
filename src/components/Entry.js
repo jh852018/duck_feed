@@ -2,10 +2,11 @@ import { useState } from 'react'
 import TextField from '@material-ui/core/TextField'
 import Grid from '@material-ui/core/Grid'
 import Button from '@material-ui/core/Button'
+import { makeStyles } from '@material-ui/core/styles'
+import axios from 'axios'
 import Label from './Label'
 import Notification from './Notification'
-import { makeStyles } from '@material-ui/core/styles'
-
+import { API_URL_BASE } from '../config/constants'
 
 const useStyles = makeStyles((theme) => ({
   label: {
@@ -25,8 +26,8 @@ const useStyles = makeStyles((theme) => ({
 
 function Entry() {
   const classes = useStyles()
-  const defaultDFData = {dfTime : '', dfFood : '1', dfLocation : '2', dfCount : '3', dfFoodType : '4', dfFoodQty: '5'}
-  const defaultNotifData = {isOpen: false, message: ''}
+  const defaultDFData = {dfTime : '', dfFood : 'Breadcrumbs', dfLocation : 'Pond', dfCount : '3', dfFoodType : 'Snack', dfFoodQty: '15'}
+  const defaultNotifData = {isOpen: false, message: '', type:'info'}
   const [duckFeedData, setDuckFeedData] = useState(Object.assign({}, defaultDFData))
   const [notification, setNotification] = useState(Object.assign({}, defaultNotifData))
 
@@ -37,20 +38,53 @@ function Entry() {
   }
 
   const onClickSubmit = () => {
-    console.log('--->', duckFeedData)
+    let dfData = Object.assign({}, duckFeedData)
+    dfData['dfTime'] = (new Date(dfData['dfTime'])).toISOString()
+    console.log('--->', dfData)
+    axios.post(`${API_URL_BASE}/duck-feed-entry`, dfData, {headers: { 'content-type': 'application/json' }})
+      .then((result) => {
+        const { data } = result
+        if(result.status !== 200 || data.error){
+          setNotification({isOpen: true, message: 'Error! Data not processed. Please try again.', type:'error'})       
+        } else {
+          setNotification({isOpen: true, message: 'Duck Feed data successfully added', type:'success'})
+        }
+        console.log('RESPONSE=>', result)
+        // setNotification({isOpen: true, message: 'Duck Feed data successfully submitted'}) 
+      })
     setDuckFeedData(Object.assign({}, defaultDFData))
-    setNotification({isOpen: true, message: 'Duck Feed data successfully submitted'} )
+    setNotification({isOpen: true, message: 'Duck Feed data successfully submitted', type:'info'}) 
   }
 
   const handleNotificationClose = (event, reason) => {
-    setNotification({isOpen: false, message: ''} )
+    setNotification({isOpen: false, message: '', type: 'info'})
+  }
+
+  const validateData = () => {
+    const { dfTime, dfFood, dfLocation } = duckFeedData
+    if(!(dfTime && dfFood && dfLocation)){
+      setNotification({isOpen: true, message: 'Required fields(*) missing.', type:'error'})
+      return true
+    } else if (new Date(dfTime) > new Date()){
+      setNotification({isOpen: true, message: 'Feed time can not be in future', type:'error'})
+      return true
+    }
+    return false
+  }
+  const submitHandler = (event) => {
+    event.preventDefault()
+    console.log('--> In submitHandler')
+    if (validateData()){
+      return
+    }
+    onClickSubmit()
   }
 
   const getDuckFeedTime = () => {
     return (
       <Grid container>
         <Grid item xs={6}>
-          <Label text='What time the ducks are fed?'/>
+          <Label text='What time the ducks are fed?*'/>
         </Grid>
         <TextField
           id="time"
@@ -63,7 +97,7 @@ function Entry() {
               step: 300, // 5 min
           }}
           value={duckFeedData['dfTime']}
-          onChange={(event) => onChangeDuckFeedData('dfTime', event.target.value)}
+          onChange={(event) => {onChangeDuckFeedData('dfTime', event.target.value)}}
         />
       </Grid>
     )
@@ -73,7 +107,7 @@ function Entry() {
     return (
       <Grid container>
         <Grid item xs={6}>
-          <Label text='What food the ducks are fed?'/>
+          <Label text='What food the ducks are fed?*'/>
         </Grid>
         <TextField
           className={classes.textField}
@@ -88,7 +122,7 @@ function Entry() {
     return (
       <Grid container>
         <Grid item xs={6}>
-          <Label text='Where the ducks are fed?'/>
+          <Label text='Where the ducks are fed?*'/>
         </Grid>
         <TextField
           className={classes.textField}
@@ -150,12 +184,13 @@ function Entry() {
         open={notification['isOpen']}
         message={notification['message']}
         onClose={handleNotificationClose}
+        type={notification['type']}
       />
     )
   }
   
   return (
-    <form className={classes.container} noValidate>
+    <form className={classes.container} noValidate onSubmit={submitHandler}>
         {getDuckFeedTime()}
         {getDuckFeedFood()}
         {getDuckFeedLocation()}
@@ -166,8 +201,8 @@ function Entry() {
           className={classes.submitButton}
           variant='contained'
           color='primary'
+          type='submit'
           disableElevation
-          onClick={onClickSubmit}
         >
           Submit
         </Button>

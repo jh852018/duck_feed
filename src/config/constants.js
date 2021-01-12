@@ -1,1 +1,1 @@
-export const BASE_URL = ''
+export const API_URL_BASE = 'https://ap-duck-feed-be.herokuapp.com/'
